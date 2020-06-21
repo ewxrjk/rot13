@@ -2,7 +2,10 @@
 
 `rot13` reads from standard input or the named files,
 moving each occurrence of a letter 13 places forward in the alphabet,
-wrapping around past the end of the alphabet.
+wrapping around past the end of the alphabet See also [ROT13](https://en.wikipedia.org/wiki/ROT13).
+
+I wrote it partly for fun
+and partly because I didn't want all the setgid stuff in [bsdgames](https://packages.debian.org/bsdgames) appearing in my security reports.
 
 ## Install
 

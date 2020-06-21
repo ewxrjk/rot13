@@ -10,5 +10,5 @@ TESTS=test_rot13
 
 AM_CPPFLAGS=-D_GNU_SOURCE=1 -DTAG=\"${tag}\"
 man_MANS=rot13.1
-EXTRA_DIST=${man_MANS} README.md .clang-format .gitignore
+EXTRA_DIST=${man_MANS} README.md .clang-format .gitignore debian/changelog debian/compat debian/control debian/copyright debian/rules
 ACLOCAL_AMFLAGS=-I m4

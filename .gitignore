@@ -11,6 +11,8 @@ config.h
 config.h.in
 config.status
 configure
+debian/*.substvars
+debian/files
 Makefile
 Makefile.in
 rot13
