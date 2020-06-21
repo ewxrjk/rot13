@@ -1,10 +1,11 @@
+// © Richard Kettewell. See README.md for more info.
 #ifndef ROT13_H
 #define ROT13_H
 
 #include <sys/types.h>
 
+/* Overkill but fun */
 #if __AVX__
-
 typedef unsigned char vector __attribute__((vector_size(32)));
 #define V(N)                                                                   \
   {                                                                            \
@@ -12,7 +13,6 @@ typedef unsigned char vector __attribute__((vector_size(32)));
       N, N, N, N, N, N, N                                                      \
   }
 #else
-
 typedef unsigned char vector __attribute__((vector_size(16)));
 #define V(N)                                                                   \
   { N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N }

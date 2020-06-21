@@ -1,3 +1,4 @@
+// © Richard Kettewell. See README.md for more info.
 #include <config.h>
 
 #include <assert.h>

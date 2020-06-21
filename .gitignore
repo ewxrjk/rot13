@@ -14,5 +14,6 @@ configure
 Makefile
 Makefile.in
 rot13
+rot13-*.tar.gz
 stamp-h1
 test_rot13
