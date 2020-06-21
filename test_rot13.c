@@ -5,17 +5,26 @@
 #include <string.h>
 #include "rot13.h"
 
+static struct {
+  const char *input, *output;
+} cases[] = {
+  { "abcdefghijklmnopqrstuvwxyz", "nopqrstuvwxyzabcdefghijklm" },
+  { "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "NOPQRSTUVWXYZABCDEFGHIJKLM" },
+  { "a0b1c2d3e4f5g6h7i8j9klmnopqrstuvwxyz",
+    "n0o1p2q3r4s5t6u7v8w9xyzabcdefghijklm" },
+  { NULL, NULL },
+};
+
 int main() {
   char buffer[64];
+  size_t i;
 
-  snprintf(buffer, sizeof buffer, "abcdefghijklmnopqrstuvwxyz");
-  rot13(buffer, strlen(buffer));
-  assert(!strcmp(buffer, "nopqrstuvwxyzabcdefghijklm"));
-  snprintf(buffer, sizeof buffer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-  rot13(buffer, strlen(buffer));
-  assert(!strcmp(buffer, "NOPQRSTUVWXYZABCDEFGHIJKLM"));
-  snprintf(buffer, sizeof buffer, "a0b1c2d3e4f5g6h7i8j9klmnopqrstuvwxyz");
-  rot13(buffer, strlen(buffer));
-  assert(!strcmp(buffer, "n0o1p2q3r4s5t6u7v8w9xyzabcdefghijklm"));
+  for(i = 0; cases[i].input; i++) {
+    strcpy(buffer, cases[i].input);
+    rot13(buffer, strlen(buffer));
+    printf("Case %zu:\n   input: %s\n  expect: %s\n     got: %s\n\n", i,
+           cases[i].input, cases[i].output, buffer);
+    assert(!strcmp(buffer, cases[i].output));
+  }
   return 0;
 }
