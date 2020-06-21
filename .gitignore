@@ -1,0 +1,17 @@
+*.log
+*.o
+*.trs
+configure
+config.h.in
+config.h
+config.status
+rot13
+stamp-h1
+.deps
+.vscode
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache
+config.aux
+test_rot13
