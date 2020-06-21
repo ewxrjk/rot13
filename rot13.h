@@ -3,9 +3,20 @@
 
 #include <sys/types.h>
 
+#if __AVX__
+
+typedef unsigned char vector __attribute__((vector_size(32)));
+#define V(N)                                                                   \
+  {                                                                            \
+    N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, \
+      N, N, N, N, N, N, N                                                      \
+  }
+#else
+
 typedef unsigned char vector __attribute__((vector_size(16)));
 #define V(N)                                                                   \
   { N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N }
+#endif
 
 #define STEP()                                                                 \
   do {                                                                         \
@@ -30,23 +41,11 @@ static void rot13(char *buffer, ssize_t n) {
   const vector v_A = V('A'), v_M = V('M'), v_N = V('N'), v_Z = V('Z');
   const vector v_a = V('a'), v_m = V('m'), v_n = V('n'), v_z = V('z');
   const vector v_13 = V(13);
-  while((size_t)n >= 4 * sizeof(vector)) {
-    STEP();
-    STEP();
-    STEP();
-    STEP();
-  }
-  while((size_t)n >= sizeof(vector)) {
-    STEP();
-  }
   while(n > 0) {
-    int ch = *buffer;
-    if((ch >= 'A' && ch <= 'M') || (ch >= 'a' && ch <= 'm'))
-      ch += 13;
-    else if((ch >= 'N' && ch <= 'Z') || (ch >= 'n' && ch <= 'z'))
-      ch -= 13;
-    *buffer++ = ch;
-    --n;
+    STEP();
+    STEP();
+    STEP();
+    STEP();
   }
 }
 

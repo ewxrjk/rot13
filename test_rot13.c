@@ -16,10 +16,11 @@ static struct {
 };
 
 int main() {
-  char buffer[64];
+  static char buffer[4096];
   size_t i;
 
   for(i = 0; cases[i].input; i++) {
+    printf("buffer=%p\n", buffer);
     strcpy(buffer, cases[i].input);
     rot13(buffer, strlen(buffer));
     printf("Case %zu:\n   input: %s\n  expect: %s\n     got: %s\n\n", i,

@@ -65,7 +65,7 @@ static int write_bytes(int fdout, const char *buffer, size_t bytes) {
 }
 
 static int rot13_stream(const char *path, int fdin, int fdout) {
-  char buffer[4096];
+  static char buffer[4096];
   ssize_t n;
 
   while((n = read_bytes(fdin, buffer, sizeof buffer)) > 0) {
