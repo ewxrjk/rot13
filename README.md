@@ -6,6 +6,7 @@ wrapping around past the end of the alphabet See also [ROT13](https://en.wikiped
 
 I wrote it partly for fun
 and partly because I didn't want all the setgid stuff in [bsdgames](https://packages.debian.org/bsdgames) appearing in my security reports.
+It is also rather a lot faster 😎
 
 ## Install
 

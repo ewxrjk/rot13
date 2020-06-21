@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #include "rot13.h"
 
@@ -68,18 +70,47 @@ static int write_bytes(int fdout, const char *buffer, size_t bytes) {
 static int rot13_stream(const char *path, int fdin, int fdout) {
   static char buffer[4096];
   ssize_t n;
+  struct stat sb;
 
-  while((n = read_bytes(fdin, buffer, sizeof buffer)) > 0) {
-    rot13(buffer, n);
-    if(write_bytes(fdout, buffer, n) < 0) {
-      perror("stdout");
-      return 1;
+  if(fstat(fdin, &sb) < 0) {
+    perror(path);
+    return 1;
+  }
+  if(S_ISREG(sb.st_mode)) {
+    off_t pos = 0;
+    while(pos < sb.st_size) {
+      size_t remain = MIN(1024 * 1024 * 128, sb.st_size - pos);
+      void *ptr = mmap(NULL, remain, PROT_READ | PROT_WRITE,
+                       MAP_PRIVATE | MAP_POPULATE, fdin, pos);
+      if(ptr == (void *)-1) {
+        perror(path);
+        return 1;
+      }
+      rot13(ptr, remain);
+      if(write_bytes(fdout, ptr, remain) < 0) {
+        perror("stdout");
+        return 1;
+      }
+      if(munmap(ptr, remain) < 0) {
+        perror("munmap");
+        return 1;
+      }
+      pos += remain;
+    }
+  } else {
+    while((n = read_bytes(fdin, buffer, sizeof buffer)) > 0) {
+      rot13(buffer, n);
+      if(write_bytes(fdout, buffer, n) < 0) {
+        perror("stdout");
+        return 1;
+      }
+    }
+    if(n < 0) {
+      perror(path);
+      return -1;
     }
   }
-  if(n < 0) {
-    perror(path);
-    return -1;
-  }
+
   return 0;
 }
 

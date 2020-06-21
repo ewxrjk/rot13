@@ -4,6 +4,10 @@
 
 #include <sys/types.h>
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+/* Fast rot13 implementation */
+
 #ifndef VECTORIZE
 #if __GNUC__
 #define VECTORIZE 1
