@@ -49,17 +49,11 @@ typedef unsigned char vector __attribute__((vector_size(16)));
 #define STEP()                                                                 \
   do {                                                                         \
     int v = *buffer;                                                           \
-    const int bupl = (v >= 'A');                                               \
-    const int buph = (v <= 'M');                                               \
-    const int blpl = (v >= 'a');                                               \
-    const int blph = (v <= 'm');                                               \
-    const int bp = (bupl & buph) | (blpl & blph);                              \
-    const int bunl = (v >= 'N');                                               \
-    const int bunh = (v <= 'Z');                                               \
-    const int blnl = (v >= 'n');                                               \
-    const int blnh = (v <= 'z');                                               \
-    const int bn = (bunl & bunh) | (blnl & blnh);                              \
-    *buffer = v + (-bp & 13) - (-bn & 13);                                     \
+    if((v >= 'A' && v <= 'M') || (v >= 'a' && v <= 'm'))                       \
+      v += 13;                                                                 \
+    else if((v >= 'N' && v <= 'Z') || (v >= 'n' && v <= 'z'))                  \
+      v -= 13;                                                                 \
+    *buffer = v;                                                               \
     buffer++;                                                                  \
     n--;                                                                       \
   } while(0)
