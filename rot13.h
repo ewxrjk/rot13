@@ -72,8 +72,6 @@ static void rot13(char *buffer, ssize_t n) {
   while(n > 0) {
     STEP();
     STEP();
-    STEP();
-    STEP();
   }
 }
 
