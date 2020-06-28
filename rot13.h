@@ -40,9 +40,9 @@ typedef unsigned char vector __attribute__((vector_size(16)));
     const vector blpl = (v >= v_a);                                            \
     const vector blph = (v <= v_m);                                            \
     const vector bp = (bupl & buph) | (blpl & blph);                           \
-    const vector bunl = (v >= v_N);                                            \
+    const vector bunl = ~buph;                                                 \
     const vector bunh = (v <= v_Z);                                            \
-    const vector blnl = (v >= v_n);                                            \
+    const vector blnl = ~blph;                                                 \
     const vector blnh = (v <= v_z);                                            \
     const vector bn = (bunl & bunh) | (blnl & blnh);                           \
     *d = v + (bp & v_13) - (bn & v_13);                                        \
@@ -65,8 +65,8 @@ typedef unsigned char vector __attribute__((vector_size(16)));
 
 static void rot13(char *buffer, ssize_t n) {
 #if VECTORIZE
-  const vector v_A = V('A'), v_M = V('M'), v_N = V('N'), v_Z = V('Z');
-  const vector v_a = V('a'), v_m = V('m'), v_n = V('n'), v_z = V('z');
+  const vector v_A = V('A'), v_M = V('M'), v_Z = V('Z');
+  const vector v_a = V('a'), v_m = V('m'), v_z = V('z');
   const vector v_13 = V(13);
 #endif
   while(n > 0) {
