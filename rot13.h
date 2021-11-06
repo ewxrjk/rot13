@@ -20,32 +20,25 @@
 /* Overkill but fun */
 #if __AVX__
 typedef unsigned char vector __attribute__((vector_size(32)));
-#define V(N)                                                                   \
-  {                                                                            \
-    N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, \
-      N, N, N, N, N, N, N                                                      \
-  }
 #else
 typedef unsigned char vector __attribute__((vector_size(16)));
-#define V(N)                                                                   \
-  { N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N }
 #endif
 
 #define STEP()                                                                 \
   do {                                                                         \
     vector *d = (vector *)buffer;                                              \
     const vector v = *d;                                                       \
-    const vector bupl = (v >= v_A);                                            \
-    const vector buph = (v <= v_M);                                            \
-    const vector blpl = (v >= v_a);                                            \
-    const vector blph = (v <= v_m);                                            \
+    const vector bupl = (v >= 'A');                                            \
+    const vector buph = (v <= 'M');                                            \
+    const vector blpl = (v >= 'a');                                            \
+    const vector blph = (v <= 'm');                                            \
     const vector bp = (bupl & buph) | (blpl & blph);                           \
     const vector bunl = ~buph;                                                 \
-    const vector bunh = (v <= v_Z);                                            \
+    const vector bunh = (v <= 'Z');                                            \
     const vector blnl = ~blph;                                                 \
-    const vector blnh = (v <= v_z);                                            \
+    const vector blnh = (v <= 'z');                                            \
     const vector bn = (bunl & bunh) | (blnl & blnh);                           \
-    *d = v + (bp & v_13) - (bn & v_13);                                        \
+    *d = v + (bp & 13) - (bn & 13);                                            \
     buffer += sizeof(vector);                                                  \
     n -= sizeof(vector);                                                       \
   } while(0)
@@ -64,11 +57,6 @@ typedef unsigned char vector __attribute__((vector_size(16)));
 #endif
 
 static void rot13(char *buffer, ssize_t n) {
-#if VECTORIZE
-  const vector v_A = V('A'), v_M = V('M'), v_Z = V('Z');
-  const vector v_a = V('a'), v_m = V('m'), v_z = V('z');
-  const vector v_13 = V(13);
-#endif
   while(n > 0) {
     STEP();
     STEP();
