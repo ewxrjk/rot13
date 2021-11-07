@@ -42,6 +42,7 @@ static void version(void) {
   printf("version %s tag %s\n", PACKAGE_VERSION, TAG);
 }
 
+/* Read from fdin, retrying on EINTR */
 static ssize_t read_bytes(int fdin, char buffer[], size_t bufsize) {
   for(;;) {
     ssize_t n = read(fdin, buffer, bufsize);
@@ -53,6 +54,7 @@ static ssize_t read_bytes(int fdin, char buffer[], size_t bufsize) {
   }
 }
 
+/* Write to fdout retrying on EINTR and short writes */
 static int write_bytes(int fdout, const char *buffer, size_t bytes) {
   while(bytes > 0) {
     ssize_t n = write(fdout, buffer, bytes);
@@ -67,9 +69,55 @@ static int write_bytes(int fdout, const char *buffer, size_t bytes) {
   return 0;
 }
 
+/* rot13 a file using mmap, starting from pos.
+ * pos must be a multiple of the page size. */
+static int rot13_mapped(const char *path, int fdin, int fdout, off_t pos,
+                        off_t size) {
+  while(pos < size) {
+    size_t remain = MIN(1024 * 1024 * 128, size - pos);
+    void *ptr = mmap(NULL, remain, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_POPULATE, fdin, pos);
+    if(ptr == (void *)-1) {
+      perror(path);
+      return 1;
+    }
+    rot13(ptr, remain);
+    if(write_bytes(fdout, ptr, remain) < 0) {
+      perror("stdout");
+      return 1;
+    }
+    if(munmap(ptr, remain) < 0) {
+      perror("munmap");
+      return 1;
+    }
+    pos += remain;
+  }
+  return 0;
+}
+
+/* rot13 a file by reading and writing */
 static int rot13_stream(const char *path, int fdin, int fdout) {
-  static char buffer[4096];
   ssize_t n;
+  /* buffer is static so we can safely access all of it even
+   * if the first read is short. */
+  static char buffer[4096];
+
+  while((n = read_bytes(fdin, buffer, sizeof buffer)) > 0) {
+    rot13(buffer, n);
+    if(write_bytes(fdout, buffer, n) < 0) {
+      perror("stdout");
+      return 1;
+    }
+  }
+  if(n < 0) {
+    perror(path);
+    return -1;
+  }
+  return 0;
+}
+
+/* rot13 any file, starting from its current position */
+static int rot13_any(const char *path, int fdin, int fdout) {
   struct stat sb;
 
   if(fstat(fdin, &sb) < 0) {
@@ -77,41 +125,16 @@ static int rot13_stream(const char *path, int fdin, int fdout) {
     return 1;
   }
   if(S_ISREG(sb.st_mode)) {
-    off_t pos = 0;
-    while(pos < sb.st_size) {
-      size_t remain = MIN(1024 * 1024 * 128, sb.st_size - pos);
-      void *ptr = mmap(NULL, remain, PROT_READ | PROT_WRITE,
-                       MAP_PRIVATE | MAP_POPULATE, fdin, pos);
-      if(ptr == (void *)-1) {
-        perror(path);
-        return 1;
-      }
-      rot13(ptr, remain);
-      if(write_bytes(fdout, ptr, remain) < 0) {
-        perror("stdout");
-        return 1;
-      }
-      if(munmap(ptr, remain) < 0) {
-        perror("munmap");
-        return 1;
-      }
-      pos += remain;
+    int pagesize = getpagesize();
+    off_t pos = lseek(fdin, 0, SEEK_CUR);
+    if(pos == (off_t)-1) {
+      perror("lseek");
+      return 1;
     }
-  } else {
-    while((n = read_bytes(fdin, buffer, sizeof buffer)) > 0) {
-      rot13(buffer, n);
-      if(write_bytes(fdout, buffer, n) < 0) {
-        perror("stdout");
-        return 1;
-      }
-    }
-    if(n < 0) {
-      perror(path);
-      return -1;
-    }
+    if(pos % pagesize == 0)
+      return rot13_mapped(path, fdin, fdout, pos, sb.st_size);
   }
-
-  return 0;
+  return rot13_stream(path, fdin, fdout);
 }
 
 int main(int argc, char **argv) {
@@ -124,12 +147,12 @@ int main(int argc, char **argv) {
     }
   }
   if(argc == optind) {
-    if(rot13_stream("stdin", 0, 1))
+    if(rot13_any("stdin", 0, 1))
       return 1;
   } else {
     for(n = optind; n < argc; n++) {
       if(!strcmp(argv[n], "-")) {
-        if(rot13_stream("stdin", 0, 1))
+        if(rot13_any("stdin", 0, 1))
           return 1;
       } else {
         int fd = open(argv[n], O_RDONLY);
@@ -137,7 +160,7 @@ int main(int argc, char **argv) {
           perror(argv[n]);
           return 1;
         }
-        if(rot13_stream(argv[n], fd, 1))
+        if(rot13_any(argv[n], fd, 1))
           return 1;
         close(fd);
       }
