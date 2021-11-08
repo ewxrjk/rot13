@@ -82,6 +82,13 @@ static int rot13_mapped(const char *path, int fdin, int fdout, off_t pos,
       return 1;
     }
     rot13(ptr, remain);
+    pos += remain;
+    /* Seek before output so we're always leaving the
+     * file offset in the right place */
+    if(lseek(fdin, pos, SEEK_SET) < 0) {
+      perror("lseek");
+      return 1;
+    }
     if(write_bytes(fdout, ptr, remain) < 0) {
       perror("stdout");
       return 1;
@@ -90,7 +97,6 @@ static int rot13_mapped(const char *path, int fdin, int fdout, off_t pos,
       perror("munmap");
       return 1;
     }
-    pos += remain;
   }
   return 0;
 }
@@ -131,6 +137,12 @@ static int rot13_any(const char *path, int fdin, int fdout) {
       perror("lseek");
       return 1;
     }
+    /* We can only map at page boundary offsets, so if we're
+     * not there then fall back to ordinary IO.
+     *
+     * TODO optimization opportunity: read up to a page boundary
+     * and then switch to mmap.
+     */
     if(pos % pagesize == 0)
       return rot13_mapped(path, fdin, fdout, pos, sb.st_size);
   }
