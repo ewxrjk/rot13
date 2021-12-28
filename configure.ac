@@ -1,6 +1,6 @@
 # © Richard Kettewell. See README.md for more info.
 AC_PREREQ([2.61])
-AC_INIT([rot13], [0], [rjk@greenend.org.uk])
+AC_INIT([rot13], [1], [rjk@greenend.org.uk])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_AUX_DIR([config.aux])
 AM_INIT_AUTOMAKE([foreign])
